@@ -1,0 +1,3 @@
+[submodule "resources/corpus"]
+	path = resources/corpus
+	url = https://github.com/ConfirmatioExMachina/corpus.git

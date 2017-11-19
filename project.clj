@@ -2,6 +2,7 @@
   :description "A NLP-based fact checker."
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [aysylu/loom "1.0.0"]
+                 [cheshire "5.8.0"]
 
                  [edu.stanford.nlp/stanford-corenlp "3.8.0"]
                  [edu.stanford.nlp/stanford-corenlp "3.8.0" :classifier "models"]
