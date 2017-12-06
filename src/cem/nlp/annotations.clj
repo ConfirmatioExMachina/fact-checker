@@ -13,7 +13,7 @@
            (edu.stanford.nlp.semgraph SemanticGraphCoreAnnotations$EnhancedPlusPlusDependenciesAnnotation)
            (edu.stanford.nlp.coref CorefCoreAnnotations$CorefChainAnnotation)))
 
-(defn format-node
+(defn- format-node
   [sentence token]
   [(id/token sentence token) {:label (str (.lemma token) "\n" (.ner token) ", " (.tag token))
                               :group (.tag token)
@@ -23,12 +23,12 @@
                               :type (types (.ner token))
                               :tag (.tag token)}])
 
-(defn format-edge
+(defn- format-edge
   [sentence edge]
   [[(id/token sentence (.getSource edge)) (id/token sentence (.getTarget edge))]
    (edge/edge (.getShortName (.getRelation edge)) true)])
 
-(defn sentence-annotations
+(defn- sentence-annotations
   [graph index sentence]
   (let [graph-annotation (.get sentence SemanticGraphCoreAnnotations$EnhancedPlusPlusDependenciesAnnotation)
         nodes (seq (.vertexListSorted graph-annotation))
