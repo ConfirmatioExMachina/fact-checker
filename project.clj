@@ -5,6 +5,8 @@
                  [aysylu/loom "1.0.0"]
                  [cheshire "5.8.0"]
                  [fastily/jwiki "1.4.0"]
+                 [clojurewerkz/propertied "1.3.0"]
+                 [gorillalabs/neo4j-clj "0.3.3"]
 
                  [edu.stanford.nlp/stanford-corenlp "3.8.0"]
                  [edu.stanford.nlp/stanford-corenlp "3.8.0" :classifier "models"]

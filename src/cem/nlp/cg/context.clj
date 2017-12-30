@@ -94,4 +94,4 @@
                                              current-context-id
                                              new-current-context)
                             new-current-context]))
-                       (and traverse-root :traverse-root))))
+                       (when traverse-root :traverse-root))))
