@@ -41,7 +41,7 @@
   (db/with-transaction @db tx
     (empty-db tx)))
 
-(defn init-constraint!
+(defn- init-constraint!
   []
   (db/with-transaction @db tx
     (try
@@ -49,13 +49,17 @@
       (println "Added constraints.")
       (catch Exception e))))
 
-(defn insert-graph!
+(defn- fix-node-types!
+  []
+  (db/with-retry [@db tx]
+    (node-types tx)
+    (println "Fixed node types.")))
+
+(defn- insert-graph!
   ([g] (insert-graph! g identity))
   ([g names]
-   (init-constraint!)
-   (db/with-transaction @db tx
-     (insert-graph! g names tx)
-     (node-types tx)))
+   (db/with-retry [@db tx]
+     (insert-graph! g names tx)))
   ([g names tx]
    (doseq [node (graph/nodes g)]
      (create-node tx {:data (-> (attr/attrs g node)
@@ -65,12 +69,13 @@
      (let [data (attr/attrs g edge)]
        (db/execute tx (create-edge-query (:type data))
                    {:from (names from), :to (names to)})))
-   (println "Added graph.")))
+   (println (str "Added graph: "
+                 (count (graph/nodes g)) " nodes, "
+                 (count (graph/edges g)) " edges."))))
 
 (defn insert-graphs!
   [graphs]
   (init-constraint!)
-  (db/with-transaction @db tx
-    (doseq [[g names] graphs]
-      (insert-graph! g names tx))
-    (node-types tx)))
+  (dorun (pmap (partial apply insert-graph!)
+               graphs))
+  (fix-node-types!))

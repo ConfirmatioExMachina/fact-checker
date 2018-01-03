@@ -6,8 +6,8 @@
 
 (defn import-docs!
   [docs]
-  (db/insert-graphs! (map (comp nlp/concept-graph second)
-                          docs)))
+  (db/insert-graphs! (pmap (comp nlp/concept-graph second)
+                           docs)))
 
 (defn import-doc!
   [doc]
@@ -19,4 +19,4 @@
 
 (defn import-corpus!
   []
-  (import-docs! @corpus/corpus))
+  (import-docs! (take 10 @corpus/corpus)))

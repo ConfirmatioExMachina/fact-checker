@@ -9,7 +9,9 @@
                      (.setProperty "annotators"
                                    (clojure.string/join "," ["tokenize" "ssplit" "pos"
                                                              "lemma" "parse" "depparse"
-                                                             "ner" "mention" "coref"])))]
+                                                             "ner" "mention" "coref"]))
+                     (.setProperty "threads"
+                                   (str (.availableProcessors (Runtime/getRuntime)))))]
     (StanfordCoreNLP. properties)))
 
 (def pipeline (delay (create-pipeline)))
