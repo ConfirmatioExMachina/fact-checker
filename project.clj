@@ -7,14 +7,17 @@
                  [fastily/jwiki "1.4.0"]
                  [clojurewerkz/propertied "1.3.0"]
                  [gorillalabs/neo4j-clj "0.3.3"]
-
+                 [org.deeplearning4j/deeplearning4j-core "0.9.1"]
+                 [org.deeplearning4j/deeplearning4j-nlp "0.9.1"]
+                 [org.nd4j/nd4j-native-platform "0.9.1"]
+                 [commons-io/commons-io "2.6"]
                  [edu.stanford.nlp/stanford-corenlp "3.8.0"]
                  [edu.stanford.nlp/stanford-corenlp "3.8.0" :classifier "models"]
                  [org.slf4j/slf4j-log4j12 "1.7.25"]]
 
   :main cem.core
 
-  :jvm-opts ["-Xms1g" "-Xmx4g"]
+  :jvm-opts ["-Xms1g" "-Xmx6g"]
 
   :profiles {:dev {:source-paths ["dev" "src" "test"]
                    :dependencies [[org.clojure/tools.namespace "0.2.11"]
