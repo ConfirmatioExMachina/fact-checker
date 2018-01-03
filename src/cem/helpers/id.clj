@@ -1,4 +1,5 @@
-(ns cem.helpers.id)
+(ns cem.helpers.id
+  (:require [clojure.string :as str]))
 
 (defn concept
   [name]
@@ -6,7 +7,7 @@
 
 (defn common-concept
   [name]
-  (concept (clojure.string/lower-case name)))
+  (concept (str/lower-case name)))
 
 (defn random
   []
@@ -14,4 +15,5 @@
 
 (defn concept?
   [id]
-  (clojure.string/starts-with? id "concept_"))
+  (and (string? id)
+       (str/starts-with? id "concept_")))
