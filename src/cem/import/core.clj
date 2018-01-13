@@ -6,8 +6,12 @@
 
 (defn import-docs!
   [docs]
-  (db/insert-graphs! (pmap (comp nlp/concept-graph second)
-                           docs)))
+  (let [graphs (pmap (fn [[title text]]
+                       (println (str "Computing concept graph for " title "."))
+                       (nlp/concept-graph text))
+                     docs)]
+    (future (doall graphs))
+    (db/insert-graphs! graphs)))
 
 (defn import-doc!
   [doc]
@@ -19,4 +23,4 @@
 
 (defn import-corpus!
   []
-  (import-docs! (take 10 @corpus/corpus)))
+  (import-docs! (take 50 @corpus/corpus)))

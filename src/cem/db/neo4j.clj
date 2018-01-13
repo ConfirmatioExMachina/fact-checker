@@ -3,7 +3,8 @@
             [loom.graph :as graph]
             [loom.attr :as attr]
             [clojurewerkz.propertied.properties :as props]
-            [neo4j-clj.core :as db]))
+            [neo4j-clj.core :as db]
+            [cem.helpers.id :as id]))
 
 (def ^:private db (delay (let [props (-> (io/resource "db.properties")
                                          (props/load-from)
@@ -21,7 +22,15 @@
   "merge (n:node {id: $data.id})
    set n = $data")
 
-(defn- create-edge-query
+(db/defquery ^:private merge-node
+  "merge (n:node {id: $data.id})
+   set n = $data")
+
+(defn- create-create-edge-query
+  [type]
+  (str "create ({id: $from})-[e:" type "]->({id: $to})"))
+
+(defn- create-merge-edge-query
   [type]
   (str "match (from {id: $from}), (to {id: $to})
         merge (from)-[e:" type "]->(to)"))
@@ -59,16 +68,24 @@
   ([g] (insert-graph! g identity))
   ([g names]
    (db/with-retry [@db tx]
-     (insert-graph! g names tx)))
-  ([g names tx]
-   (doseq [node (graph/nodes g)]
-     (create-node tx {:data (-> (attr/attrs g node)
-                                (dissoc :annotation)
-                                (assoc :id (names node)))}))
-   (doseq [[from to :as edge] (graph/edges g)]
-     (let [data (attr/attrs g edge)]
-       (db/execute tx (create-edge-query (:type data))
-                   {:from (names from), :to (names to)})))
+     (insert-graph! tx g names)))
+  ([tx g names]
+   (doseq [node (graph/nodes g)
+           :let [id (names node)]]
+     ((if (id/concept? id)
+        merge-node create-node)
+      tx {:data (-> (attr/attrs g node)
+                    (dissoc :annotation)
+                    (assoc :id id))}))
+   (doseq [[from to :as edge] (graph/edges g)
+           :let [{:keys [type]} (attr/attrs g edge)
+                 from (names from)
+                 to (names to)]]
+     (db/execute tx ((if (and (id/concept? from) (id/concept? to))
+                       create-merge-edge-query
+                       create-create-edge-query)
+                     type)
+                 {:from (names from), :to (names to)}))
    (println (str "Added graph: "
                  (count (graph/nodes g)) " nodes, "
                  (count (graph/edges g)) " edges."))))
