@@ -14,24 +14,24 @@
   (println "Found Word2Vec Model")
   (io/as-file location))
 
-(def vectors (WordVectorSerializer/readWord2VecModel (load-model model-url model-location)))
+(def vectors (delay (WordVectorSerializer/readWord2VecModel (load-model model-url model-location))))
 
 (defn similarity
   [w1 w2]
-  (if (and (.hasWord vectors w1) (.hasWord vectors w2))
-    (.similarity vectors w1 w2)))
+  (if (and (.hasWord @vectors w1) (.hasWord @vectors w2))
+    (.similarity @vectors w1 w2)))
 
 (defn n-nearest-words
   [w n]
-  (if (.hasWord vectors w)
-    (.wordsNearest vectors w n)))
+  (if (.hasWord @vectors w)
+    (.wordsNearest @vectors w n)))
 
 (defn find-n-best-analogies
   [w-analogy-from w-analogy-to w-goal-from n]
-  (if (and (.hasWord vectors w-analogy-from)
-           (.hasWord vectors w-analogy-to)
-           (.hasWord vectors w-goal-from))
-    (.wordsNearest vectors
+  (if (and (.hasWord @vectors w-analogy-from)
+           (.hasWord @vectors w-analogy-to)
+           (.hasWord @vectors w-goal-from))
+    (.wordsNearest @vectors
                    (java.util.ArrayList. [w-goal-from w-analogy-to])
                    (java.util.ArrayList. [w-analogy-from])
                    n)))
