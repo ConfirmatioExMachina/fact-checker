@@ -2,14 +2,11 @@
   (:require [clojure.java.io :as io]
             [loom.graph :as graph]
             [loom.attr :as attr]
-            [clojurewerkz.propertied.properties :as props]
             [neo4j-clj.core :as db]
-            [cem.helpers.id :as id]))
+            [cem.helpers.id :as id]
+            [cem.db.props :refer [props]]))
 
-(def ^:private db (delay (let [props (-> (io/resource "db.properties")
-                                         (props/load-from)
-                                         (props/properties->map true))
-                               {host :neo4j.host, user :neo4j.user, pw :neo4j.password} props]
+(def ^:private db (delay (let [{host :neo4j.host, user :neo4j.user, pw :neo4j.password} @props]
                            (db/connect host user pw))))
 
 (db/defquery ^:private init-constraint
