@@ -6,7 +6,7 @@
 
 (def ^:dynamic *viewer* :proto-repl)
 (def ^:dynamic *dot-path* (str (System/getProperty "user.home")
-                               "/text2kg/graph.dot"))
+                               "/factCheck/graph.dot"))
 
 (defn display-loom-graph
   [title g options]
