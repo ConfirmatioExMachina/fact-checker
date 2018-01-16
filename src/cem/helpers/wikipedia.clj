@@ -2,14 +2,14 @@
   (:import (fastily.jwiki.core Wiki)))
 
 (def wikipedia (delay (Wiki. "en.wikipedia.org")))
-(def blacklist (transient #{}))
+(def blacklist (atom #{}))
 
 (defn fetch-summary
   [title]
-  (if-not (blacklist title)
+  (if-not (contains? @blacklist title)
     (let [summary (.getTextExtract @wikipedia title)]
       (if (some? summary)
         summary
         (do
-          (conj! blacklist title)
+          (swap! blacklist conj title)
           nil)))))
