@@ -52,7 +52,6 @@
   (db/with-transaction @db tx
     (try
       (init-constraint tx)
-      (println "Added constraints.")
       (catch Exception e))))
 
 (defn- fix-node-types!

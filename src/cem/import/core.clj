@@ -8,19 +8,24 @@
   [docs]
   (let [graphs (pmap (fn [[title text]]
                        (println (str "Computing concept graph for " title "."))
-                       (nlp/concept-graph text))
+                       [title (nlp/concept-graph text)])
                      docs)]
-    (future (doall graphs))
-    (db/insert-graphs! graphs)))
+    (future (doall graphs)) ; Force realization of all graphs in case ES or Neo4j are a bottleneck.
+    (db/insert-titled-graphs! graphs)))
 
 (defn import-doc!
-  [doc]
-  (import-docs! [doc]))
+  [title text]
+  (if-not (db/title-inserted? title)
+    (import-docs! [[title text]])))
 
 (defn import-article!
   [title]
-  (import-doc! [title (wiki/fetch-summary title)]))
+  (if-not (db/title-inserted? title)
+    (if-let [summary (wiki/fetch-summary title)]
+      (import-docs! [[title summary]]))))
 
 (defn import-corpus!
   []
-  (import-docs! (take 50 @corpus/corpus)))
+  (import-docs! (->> @corpus/corpus
+                     (filter (comp (complement db/title-inserted?) first))
+                     (take 50))))

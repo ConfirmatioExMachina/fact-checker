@@ -1,20 +1,23 @@
 (ns cem.db.elasticsearch
   (:require [qbits.spandex :as s]
             [qbits.spandex.url :refer [encode-fragment]]
+            [loom.graph :as graph]
+            [loom.attr :as attr]
             [cem.db.props :refer [props]]
             [cem.helpers.id :as id]))
 
-(def mapping-types {:articles {:title {:type "text"}}
-                    :nodes {:label {:type "text"}}})
+(def mapping-types {:titles {:title {:type "text"}}
+                    :nodes {:label {:type "text"}
+                            :group {:type "keyword"}
+                            :named {:type "boolean"}}})
 
 (defn- create-index!
   [db name props]
   (try
-    (doto db
-      (s/request {:method :put
-                  :url (encode-fragment name)
-                  :body {:mappings {:doc {:properties props}}}}))
-    (println (str "Created index " name "."))
+    (s/request db {:method :put
+                   :url (encode-fragment name)
+                   :body {:mappings {:doc {:properties props}}}})
+    (println (str "Created index: " name))
     (catch Exception e)))
 
 (defn- delete-index!
@@ -26,14 +29,13 @@
 (defn- init-indices!
   [db]
   (doto db
-    (create-index! "articles" (:article mapping-types))
+    (create-index! "titles" (:titles mapping-types))
     (create-index! "nodes" (:nodes mapping-types))))
 
 (defn- create-doc!
   ([db index doc]
    (s/request db {:method :post
-                  :url (str (encode-fragment index)
-                            "/doc")
+                  :url (str (encode-fragment index) "/doc")
                   :body doc}))
   ([db index id doc]
    (s/request db {:method :put
@@ -41,11 +43,27 @@
                             (encode-fragment id))
                   :body doc})))
 
+(defn- create-docs!
+  [db index docs]
+  (if (seq docs)
+    (s/request db {:method :post, :url "/_bulk"
+                   :body (s/chunks->body (mapcat (fn [doc]
+                                                   (if (vector? doc)
+                                                     [{:index {:_index index
+                                                               :_id (first doc)
+                                                               :_type "doc"}}
+                                                      (second doc)]
+                                                     [{:index {:_index index}} doc]))
+                                                 docs))})))
+
 (defn- get-doc
   [db index id]
-  (:body (s/request db {:method :get
-                        :url (str (encode-fragment index) "/doc/"
-                                  (encode-fragment id))})))
+  (try
+    (:body (s/request db {:method :get
+                          :url (str (encode-fragment index) "/doc/"
+                                    (encode-fragment id))}))
+    (catch Exception e
+      (:body (ex-data e)))))
 
 (defn- search-docs
   [db index query]
@@ -61,14 +79,25 @@
 (defn empty-db!
   []
   (doto @db
-    (delete-index! "articles")
+    (delete-index! "titles")
     (delete-index! "nodes")
     (init-indices!)))
 
-(defn create-article!
-  [title]
-  (create-doc! @db "articles" title {:title title}))
+(defn insert-titles!
+  [titles]
+  (create-docs! @db "titles"
+                (map #(vector % {:title %})
+                     titles)))
 
-(empty-db!)
-(create-article! (str "test"))
-(get-doc @db "articles" "test")
+(defn contains-title?
+  [title]
+  (:found (get-doc @db "titles" title) false))
+
+(defn insert-graph-nodes!
+  ([g] (insert-graph-nodes! g identity))
+  ([g names]
+   (create-docs! @db "nodes"
+                 (map #(vector (names %)
+                               (select-keys (attr/attrs g %)
+                                            [:label :group :named]))
+                      (graph/nodes g)))))
