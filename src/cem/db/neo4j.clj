@@ -54,7 +54,7 @@
       (init-constraint tx)
       (catch Exception e))))
 
-(defn- fix-node-types!
+(defn fix-node-types!
   []
   (db/with-retry [@db tx]
     (node-types tx)

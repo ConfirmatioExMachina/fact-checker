@@ -5,7 +5,7 @@
 
 (defn start
   []
-  (require '[vis.helpers :refer [change-viewer! change-dot-path!]]
+  (require '[vis.helpers :refer [display-loom-graph change-viewer! change-dot-path!]]
            '[vis.nlp :refer :all]
            '[cem.core])
   (ctnr/disable-reload! (find-ns 'cem.nlp.pipeline))
