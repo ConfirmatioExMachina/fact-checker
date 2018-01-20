@@ -42,21 +42,25 @@
 
 (defn annotation-graph
   [text]
-  (let [doc (Annotation. text)]
-    (.annotate @pipeline doc)
-    (let [graph (reduce-kv sentence-annotations
-                           (lg/digraph)
-                           (vec (.get doc CoreAnnotations$SentencesAnnotation)))
-          corefs (seq (.values (.get doc CorefCoreAnnotations$CorefChainAnnotation)))]
-      (reduce (fn [g coref]
-                (let [representative-mention (.getRepresentativeMention coref)
-                      representative-node (id/mention representative-mention)
+  (if text
+    ; Compute CoreNLP annotations if a text was given:
+    (let [doc (Annotation. text)]
+      (.annotate @pipeline doc)
+      (let [graph (reduce-kv sentence-annotations
+                             (lg/digraph)
+                             (vec (.get doc CoreAnnotations$SentencesAnnotation)))
+            corefs (seq (.values (.get doc CorefCoreAnnotations$CorefChainAnnotation)))]
+        (reduce (fn [g coref]
+                  (let [representative-mention (.getRepresentativeMention coref)
+                        representative-node (id/mention representative-mention)
 
-                      mentions (seq (.getMentionsInTextualOrder coref))
-                      nodes (map id/mention mentions)
-                      coref-edges (into {} (map #(when (not= representative-node %)
-                                                   (vector [% representative-node]
-                                                           edge/coref))
-                                                nodes))]
-                  (helpers/add-edges-with-attrs g coref-edges)))
-              graph corefs))))
+                        mentions (seq (.getMentionsInTextualOrder coref))
+                        nodes (map id/mention mentions)
+                        coref-edges (into {} (map #(when (not= representative-node %)
+                                                     (vector [% representative-node]
+                                                             edge/coref))
+                                                  nodes))]
+                    (helpers/add-edges-with-attrs g coref-edges)))
+                graph corefs)))
+    ; Return an empty graph if no text was given:
+    (lg/digraph)))

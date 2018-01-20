@@ -19,6 +19,10 @@
     @graph-nodes-inserted
     @graphs-inserted))
 
+(defn search-nodes
+  [label]
+  (es/search-nodes label))
+
 (defn empty-db!
   []
   (let [es (future (es/empty-db!))

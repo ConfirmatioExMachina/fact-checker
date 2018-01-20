@@ -93,6 +93,13 @@
   [title]
   (:found (get-doc @db "titles" title) false))
 
+(defn search-nodes
+  [label]
+  (map :_id
+       (search-docs @db "nodes"
+                    {:bool {:must [{:match {:label label}}
+                                   {:match {:named true}}]}})))
+
 (defn insert-graph-nodes!
   ([g] (insert-graph-nodes! g identity))
   ([g names]

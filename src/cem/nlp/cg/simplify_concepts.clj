@@ -27,9 +27,9 @@
 
 (defn merge-context-chains
   [g]
-  (let [contexts (->> (graph/nodes g)
-                      (filter (comp context/context?
-                                    (partial attr/attrs g))))
+  (let [contexts (filter (comp context/context?
+                               (partial attr/attrs g))
+                         (graph/nodes g))
         context-chains (->> contexts
                             (map (juxt identity (context/nested g)))
                             (filter (comp (partial >= 1)

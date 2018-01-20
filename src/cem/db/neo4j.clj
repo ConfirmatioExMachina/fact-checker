@@ -88,7 +88,8 @@
 
 (defn insert-graphs!
   [graphs]
-  (init-constraint!)
-  (dorun (pmap (partial apply insert-graph!)
-               graphs))
-  (fix-node-types!))
+  (when (seq graphs)
+    (init-constraint!)
+    (dorun (pmap (partial apply insert-graph!)
+                 graphs))
+    (fix-node-types!)))
