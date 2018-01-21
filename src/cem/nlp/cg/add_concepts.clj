@@ -151,7 +151,8 @@
         (hlp/add-nodes-with-attrs g (->> types
                                          (map #(vector (id/common-concept %)
                                                        {:label (str/lower-case %)
-                                                        :named true}))
+                                                        :named true
+                                                        :global true}))
                                          (into {})))
         (hlp/add-edges-with-attrs g (->> (graph/nodes g)
                                          (map (juxt #(attr/attr g % :type) identity))

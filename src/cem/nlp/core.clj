@@ -4,5 +4,6 @@
 
 (def annotation-graph annotations/annotation-graph)
 
-(def concept-graph (comp cg/concept-graph
-                         annotation-graph))
+(defn concept-graph
+  [text & opts]
+  (apply cg/concept-graph (annotation-graph text) opts))

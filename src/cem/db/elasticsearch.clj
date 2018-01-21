@@ -98,7 +98,8 @@
   (map :_id
        (search-docs @db "nodes"
                     {:bool {:must [{:match {:label label}}
-                                   {:match {:named true}}]}})))
+                                   {:match {:named true}}
+                                   {:match {:global true}}]}})))
 
 (defn insert-graph-nodes!
   ([g] (insert-graph-nodes! g identity))
@@ -106,5 +107,5 @@
    (create-docs! @db "nodes"
                  (map #(vector (names %)
                                (select-keys (attr/attrs g %)
-                                            [:label :group :named]))
+                                            [:label :group :named :global]))
                       (graph/nodes g)))))

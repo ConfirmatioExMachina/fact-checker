@@ -21,7 +21,8 @@
 (defn import-articles!
   [titles]
   (let [docs (->> titles
-                  (filter (complement db/title-inserted?))
+                  (distinct)
+                  (remove db/title-inserted?)
                   (pmap (juxt identity wiki/fetch-summary)))]
     (import-docs! docs)))
 

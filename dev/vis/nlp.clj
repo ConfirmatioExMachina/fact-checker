@@ -9,7 +9,7 @@
                       {:edges {:arrows "to"}}))
 
 (defn show-concept-graph
-  [text]
+  [text & opts]
   (display-loom-graph "Concept Graph"
-                      (concept-graph text)
+                      (apply concept-graph text opts)
                       {:edges {:arrows "to"}}))
