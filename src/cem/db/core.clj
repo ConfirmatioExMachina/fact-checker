@@ -23,6 +23,8 @@
   [label]
   (es/search-nodes label))
 
+(def cypher-query neo4j/query)
+
 (defn empty-db!
   []
   (let [es (future (es/empty-db!))

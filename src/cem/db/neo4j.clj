@@ -99,3 +99,8 @@
     (dorun (pmap (partial apply insert-graph!)
                  graphs))
     (fix-node-types!)))
+
+(defn query
+  [query params]
+  (db/with-transaction @db tx
+    (db/execute tx query params)))
