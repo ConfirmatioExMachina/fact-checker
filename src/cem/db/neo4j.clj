@@ -87,7 +87,7 @@
                     create-merge-edge-query
                     create-create-edge-query)
                   type)
-                 {:from (names from), :to (names to)}))
+                 {:from from, :to to}))
    (println (str "Added graph: "
                  (count (graph/nodes g)) " nodes, "
                  (count (graph/edges g)) " edges."))))
