@@ -5,9 +5,11 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
 
                  [org.clojure/data.csv "0.1.4"]
+                 [org.clojure/data.json "0.2.6"]
                  [cheshire "5.8.0"]
                  [aysylu/loom "1.0.0"]
                  [fastily/jwiki "1.4.0"]
+                 [clj-http "3.7.0"]
                  [clojurewerkz/propertied "1.3.0"]
                  [org.slf4j/slf4j-log4j12 "1.7.25"]
 
