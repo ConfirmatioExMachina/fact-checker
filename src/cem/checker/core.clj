@@ -8,14 +8,22 @@
             [cem.corpus.core :as corpus]))
 
 (def ^:private max-path-length 2)
-(def ^:private considered-matches 5)
+(def ^:private considered-matches 2)
 (def ^:private drop-off-coefficient 0.2)
 
 (def ^:private match-query
   (str "match (n1:node {id: $n1}), (n2:node {id: $n2}),
-              (n1)-[:inst*]->(m1:node)-[*0.." max-path-length "]-(m2:node)<-[:inst*]-(n2)
+              (n1)-[:inst*]->(m1:node), (m2:node)<-[:inst*]-(n2),
+              p = shortestPath((m1)-[*0.." max-path-length "]-(m2))
+        where (not exists(m1.global) or m1.global = false or n1.global = m1.global)
+         	and (not exists(m2.global) or m2.global = false or n1.global = m2.global)
+         	and none(x in nodes(p) where x.group = 'context' or (exists(x.global) and x <> m1 and x <> m2))
         with count(1) as paths
         return paths"))
+
+(defn- binarify-result
+  [result]
+  (/ (inc result) 2))
 
 (defn check-fact
   [fact]
@@ -42,15 +50,17 @@
                      (let [[n1 n2] (seq nodes)
                            n1-starts (start-ids n1)
                            n2-starts (start-ids n2)
-                           kg-matches (for [[i1 n1-start] n1-starts, [i2 n2-start] n2-starts]
+                           kg-matches (for [[i1 [n1-start n1-score]] n1-starts
+                                            [i2 [n2-start n2-score]] n2-starts]
                                         (* (if (pos? (-> (db/cypher-query match-query
                                                            {:n1 n1-start, :n2 n2-start})
                                                          first (:paths 0)))
                                              1 -1)
+                                           n1-score n2-score
                                            (Math/pow drop-off-coefficient (+ i1 i2))))
                            abs-match-sum (apply + (map #(Math/abs %) kg-matches))]
-                       (println n1-starts n2-starts kg-matches)
-                       (/ (apply + kg-matches) abs-match-sum)))]
-      kg-paths)))
+                       (if (zero? abs-match-sum) 0 (/ (apply + kg-matches) abs-match-sum))))]
+      (binarify-result (if (empty? kg-paths) 0 (apply min kg-paths))))))
 
-(time (check-fact "Ted Harbert is Stephen Dunham's better half."))
+(time (check-fact "Portsmouth is Charles Dickens' nascence place."))
+; (time (check-fact "Ted Harbert is Stephen Dunham's better half."))

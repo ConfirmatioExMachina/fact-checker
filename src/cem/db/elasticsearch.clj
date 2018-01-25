@@ -95,7 +95,7 @@
 
 (defn search-nodes
   [label]
-  (map :_id
+  (map (juxt :_id :_score)
        (search-docs @db "nodes"
                     {:bool {:must [{:match {:label label}}
                                    {:match {:named true}}
