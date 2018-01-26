@@ -2,35 +2,58 @@
   (require [clj-http.client :as client]
            [clj-http.util :as client-util]
            [clojure.data.json :as json]
-           [clojure.string :as string])
-  (:import (fastily.jwiki.core Wiki)))
+           [clojure.string :as str])
+  (:import (java.util ArrayList)
+           (fastily.jwiki.core Wiki MQuery)))
 
-(def wikipedia (delay (Wiki. "en.wikipedia.org")))
+(def wiki (delay (Wiki. "en.wikipedia.org")))
 (def blacklist (atom #{}))
+
+(defn fetch-summaries
+  [titles]
+  (let [bl @blacklist
+        titles (remove bl titles)
+        resolve-map (try
+                      (into {} (MQuery/resolveRedirects @wiki (ArrayList. titles)))
+                      ; If resolve fails, use the given titles for lookup:
+                      (catch Exception e identity))
+        resolved-titles (->> titles
+                             (keep resolve-map)
+                             (remove bl))
+        summaries (if-not (empty? resolved-titles)
+                    (into {} (MQuery/getTextExtracts @wiki (ArrayList. resolved-titles)))
+                    {})
+        lc-summaries (->> summaries
+                          (map (fn [[k v]] [(str/lower-case k) v]))
+                          (into {}))
+        unresolved-summaries (->> titles
+                                  (map (juxt identity
+                                             (comp lc-summaries
+                                                   str/lower-case
+                                                   resolve-map)))
+                                  (into {}))]
+    (swap! blacklist (partial apply conj)
+           (mapcat (fn [title]
+                     (when (-> title unresolved-summaries nil?)
+                       (conj #{} title (resolve-map title))))
+                   titles))
+    unresolved-summaries))
 
 (defn fetch-summary
   [title]
-  (if-not (contains? @blacklist title)
-    (let [summary (.getTextExtract @wikipedia title)]
-      (if (some? summary)
-        summary
-        (do
-          (swap! blacklist conj title)
-          nil)))))
-
-
+  (get (fetch-summaries [title]) title))
 
 (defn- extract-infobox
   [body]
-  (map (fn [x] (hash-map :property (string/trim (get x 0)),
-                         :value (string/trim (get x 1))))
+  (map (fn [x] (hash-map :property (str/trim (get x 0)),
+                         :value (str/trim (get x 1))))
        (filter (fn [e] (= (count e) 2))
-               (map (fn [i] (string/split (string/trim (string/replace i "\\n" "")) #"="))
-                    (filter (fn [s] (string/includes? s "="))
-                            (string/split (subs body
-                                                (string/index-of body (re-find #"\{\{\s*[Ii]nfobox" body))
-                                                (count body))
-                                          #"\|"))))))
+               (map (fn [i] (str/split (str/trim (str/replace i "\\n" "")) #"="))
+                    (filter (fn [s] (str/includes? s "="))
+                            (str/split (subs body
+                                             (str/index-of body (re-find #"\{\{\s*[Ii]nfobox" body))
+                                             (count body)
+                                          #"\|")))))))
 
 (defn fetch-infobox
   [title]
