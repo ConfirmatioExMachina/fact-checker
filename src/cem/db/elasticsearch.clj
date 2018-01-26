@@ -105,7 +105,9 @@
   ([g] (insert-graph-nodes! g identity))
   ([g names]
    (create-docs! @db "nodes"
-                 (map #(vector (names %)
-                               (select-keys (attr/attrs g %)
-                                            [:label :group :named :global]))
+                 (keep (fn [node]
+                         (let [attrs (attr/attrs g node)]
+                           (when (and (:global attrs) (:named attrs))
+                             (vector (names node)
+                                     (select-keys attrs [:label :group :named :global])))))
                       (graph/nodes g)))))
