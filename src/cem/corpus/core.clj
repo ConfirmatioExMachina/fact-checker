@@ -28,7 +28,7 @@
                                (map (fn [[t1 t2]] {t2 #{t1}}))
                                (apply merge-with into))
         summaries (->> summaries
-                       (remove (comp db/title-inserted? first))
+                       (map (fn [[t s]] (if (db/title-inserted? t) [t nil] [t s])))
                        (into {}))]
     (import-docs! (map (fn [[title summary]]
                          [(conj (reverse-title-map title) title) summary])
