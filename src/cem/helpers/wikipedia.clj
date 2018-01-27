@@ -24,24 +24,23 @@
                     (into {} (MQuery/getTextExtracts @wiki (ArrayList. resolved-titles)))
                     {})
         lc-summaries (->> summaries
-                          (map (fn [[k v]] [(str/lower-case k) v]))
+                          (map (fn [[t s]] [(str/lower-case t) {:title t :summary s}]))
                           (into {}))
-        unresolved-summaries (->> titles
-                                  (map (juxt identity
-                                             (comp lc-summaries
-                                                   str/lower-case
-                                                   resolve-map)))
-                                  (into {}))]
+        deref-summaries (->> titles
+                             (map (juxt identity (comp lc-summaries
+                                                       str/lower-case
+                                                       resolve-map)))
+                             (into {}))]
     (swap! blacklist (partial apply conj)
            (mapcat (fn [title]
-                     (when (-> title unresolved-summaries nil?)
+                     (when (-> title deref-summaries nil?)
                        (conj #{} title (resolve-map title))))
                    titles))
-    unresolved-summaries))
+    deref-summaries))
 
 (defn fetch-summary
   [title]
-  (get (fetch-summaries [title]) title))
+  (get-in (fetch-summaries [title]) [title :summary]))
 
 (defn- extract-infobox
   [body]

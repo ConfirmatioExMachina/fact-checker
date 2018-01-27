@@ -9,7 +9,7 @@
 
 (defn insert-titled-graphs!
   [titled-graphs]
-  (let [titles (map first titled-graphs)
+  (let [titles (set (mapcat first titled-graphs))
         graphs (map (comp pre/uniqueify-graph second) titled-graphs)
         titles-inserted (future (es/insert-titles! titles))
         graph-nodes-inserted (future (run! (partial apply es/insert-graph-nodes!)

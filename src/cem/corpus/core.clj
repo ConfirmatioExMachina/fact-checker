@@ -6,9 +6,9 @@
 
 (defn import-docs!
   [docs]
-  (let [graphs (pmap (fn [[title text]]
-                       (println (str "Computing concept graph for " title "."))
-                       [title (nlp/concept-graph text)])
+  (let [graphs (pmap (fn [[raw-title {:keys [title summary]}]]
+                       (println (str "Computing concept graph for " raw-title " (" title ")."))
+                       [[raw-title title] (nlp/concept-graph summary)])
                      docs)]
     (future (doall graphs)) ; Force realization of all graphs in case ES or Neo4j are a bottleneck.
     (db/insert-titled-graphs! graphs)))
@@ -23,7 +23,7 @@
   (let [docs (->> titles
                   (distinct)
                   (remove db/title-inserted?)
-                  (pmap (juxt identity wiki/fetch-summary)))]
+                  wiki/fetch-summaries)]
     (import-docs! docs)))
 
 (defn import-article!
