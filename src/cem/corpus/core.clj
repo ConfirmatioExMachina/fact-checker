@@ -6,9 +6,9 @@
 
 (defn import-docs!
   [docs]
-  (let [graphs (pmap (fn [[raw-title {:keys [title summary]}]]
-                       (println (str "Computing concept graph for " raw-title " (" title ")."))
-                       [[raw-title title] (nlp/concept-graph summary)])
+  (let [graphs (pmap (fn [[titles summary]]
+                       (println (str "Computing concept graph for " titles "."))
+                       [titles (nlp/concept-graph summary)])
                      docs)]
     (future (doall graphs)) ; Force realization of all graphs in case ES or Neo4j are a bottleneck.
     (db/insert-titled-graphs! graphs)))
@@ -16,15 +16,23 @@
 (defn import-doc!
   [title text]
   (if-not (db/title-inserted? title)
-    (import-docs! [[title text]])))
+    (import-docs! [[[title] text]])))
 
 (defn import-articles!
   [titles]
-  (let [docs (->> titles
-                  (distinct)
-                  (remove db/title-inserted?)
-                  wiki/fetch-summaries)]
-    (import-docs! docs)))
+  (let [[title-map summaries] (->> titles
+                                   (distinct)
+                                   (remove db/title-inserted?)
+                                   wiki/fetch-summaries)
+        reverse-title-map (->> title-map
+                               (map (fn [[t1 t2]] {t2 #{t1}}))
+                               (apply merge-with into))
+        summaries (->> summaries
+                       (remove (comp db/title-inserted? first))
+                       (into {}))]
+    (import-docs! (map (fn [[title summary]]
+                         [(conj (reverse-title-map title) title) summary])
+                       summaries))))
 
 (defn import-article!
   [title]

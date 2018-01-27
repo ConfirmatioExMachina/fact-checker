@@ -12,35 +12,36 @@
 (defn fetch-summaries
   [titles]
   (let [bl @blacklist
-        titles (remove bl titles)
-        resolve-map (try
+        titles (distinct titles)
+        res-map (try
                       (into {} (MQuery/resolveRedirects @wiki (ArrayList. titles)))
                       ; If resolve fails, use the given titles for lookup:
                       (catch Exception e identity))
-        resolved-titles (->> titles
-                             (keep resolve-map)
-                             (remove bl))
-        summaries (if-not (empty? resolved-titles)
-                    (into {} (MQuery/getTextExtracts @wiki (ArrayList. resolved-titles)))
+        res-titles (->> titles
+                        (keep res-map)
+                        (remove bl))
+        summaries (if-not (empty? res-titles)
+                    (into {} (MQuery/getTextExtracts @wiki (ArrayList. res-titles)))
                     {})
-        lc-summaries (->> summaries
-                          (map (fn [[t s]] [(str/lower-case t) {:title t :summary s}]))
-                          (into {}))
-        deref-summaries (->> titles
-                             (map (juxt identity (comp lc-summaries
-                                                       str/lower-case
-                                                       resolve-map)))
-                             (into {}))]
+        lc-res-titles->res-titles (->> summaries
+                                       (map (fn [[t s]] [(str/lower-case t) t]))
+                                       (into {}))
+        titles->ref-titles (->> titles
+                                (map (juxt identity (comp lc-res-titles->res-titles
+                                                          str/lower-case
+                                                          res-map)))
+                                (into {}))]
     (swap! blacklist (partial apply conj)
            (mapcat (fn [title]
-                     (when (-> title deref-summaries nil?)
-                       (conj #{} title (resolve-map title))))
-                   titles))
-    deref-summaries))
+                     (when (-> title titles->ref-titles summaries nil?)
+                       [title (titles->ref-titles title)]))
+              titles))
+    [titles->ref-titles summaries]))
 
 (defn fetch-summary
   [title]
-  (get-in (fetch-summaries [title]) [title :summary]))
+  (let [[title-map summaries] (fetch-summaries [title])]
+    (-> title title-map summaries)))
 
 (defn- extract-infobox
   [body]
