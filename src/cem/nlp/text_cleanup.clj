@@ -5,4 +5,5 @@
 
 (defn cleanup
   [text]
-  (str/replace text #"\s*,\s*Inc\." " Inc."))
+  (when text
+    (str/replace text #"\s*,\s*Inc\." " Inc.")))
