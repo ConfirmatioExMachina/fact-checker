@@ -6,20 +6,16 @@
   (:import (java.util ArrayList)
            (fastily.jwiki.core Wiki MQuery)))
 
-(def wiki (delay (Wiki. "en.wikipedia.org")))
-(def blacklist (atom #{}))
+(def ^:private wiki (delay (Wiki. "en.wikipedia.org")))
 
 (defn fetch-summaries
   [titles]
-  (let [bl @blacklist
-        titles (distinct titles)
+  (let [titles (distinct titles)
         res-map (try
-                      (into {} (MQuery/resolveRedirects @wiki (ArrayList. titles)))
-                      ; If resolve fails, use the given titles for lookup:
-                      (catch Exception e identity))
-        res-titles (->> titles
-                        (keep res-map)
-                        (remove bl))
+                  (into {} (MQuery/resolveRedirects @wiki (ArrayList. titles)))
+                  ; If resolve fails, use the given titles for lookup:
+                  (catch Exception e identity))
+        res-titles (keep res-map titles)
         summaries (if-not (empty? res-titles)
                     (into {} (MQuery/getTextExtracts @wiki (ArrayList. res-titles)))
                     {})
@@ -31,11 +27,6 @@
                                                           str/lower-case
                                                           res-map)))
                                 (into {}))]
-    (swap! blacklist (partial apply conj)
-           (mapcat (fn [title]
-                     (when (-> title titles->ref-titles summaries nil?)
-                       [title (titles->ref-titles title)]))
-              titles))
     [titles->ref-titles summaries]))
 
 (defn fetch-summary
@@ -57,10 +48,9 @@
 
 (defn fetch-infobox
   [title]
-  (if-not(contains? @blacklist title)
-     (extract-infobox
-      (get
-       (client/get
-        (str "http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&rvprop=content&titles="
-             (client-util/url-encode title)))
-       :body))))
+  (extract-infobox
+   (get
+    (client/get
+     (str "http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&rvprop=content&titles="
+          (client-util/url-encode title)))
+    :body)))
