@@ -9,15 +9,17 @@
 
 (defn insert-titled-graphs!
   [titled-graphs]
-  (let [titles (set (mapcat first titled-graphs))
-        graphs (map (comp pre/uniqueify-graph second) titled-graphs)
-        titles-inserted (future (es/insert-titles! titles))
-        graph-nodes-inserted (future (run! (partial apply es/insert-graph-nodes!)
-                                           graphs))
-        graphs-inserted (future (neo4j/insert-graphs! graphs))]
-    @titles-inserted
-    @graph-nodes-inserted
-    @graphs-inserted))
+  (when (seq titled-graphs)
+    (let [titles (set (mapcat first titled-graphs))
+          graphs (map (comp pre/uniqueify-graph second) titled-graphs)
+          titles-inserted (future (es/insert-titles! titles))
+          graph-nodes-inserted (future (run! (partial apply es/insert-graph-nodes!)
+                                             graphs))
+          graphs-inserted (future (neo4j/insert-graphs! graphs))]
+      @titles-inserted
+      @graph-nodes-inserted
+      @graphs-inserted
+      (es/refresh!))))
 
 (defn search-nodes
   [label]

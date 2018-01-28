@@ -72,6 +72,10 @@
                      :body {:query query}})
       :body :hits :hits))
 
+(defn- refresh-indices!
+  [db]
+  (s/request db {:method :post, :url "/_refresh"}))
+
 (def ^:private db (delay (let [{uri :elasticsearch.uri} @props
                                db (s/client {:hosts [uri]})]
                            (init-indices! db))))
@@ -111,3 +115,7 @@
                              (vector (names node)
                                      (select-keys attrs [:label :group :named :global])))))
                       (graph/nodes g)))))
+
+(defn refresh!
+  []
+  (refresh-indices! @db))
