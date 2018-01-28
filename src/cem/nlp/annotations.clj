@@ -20,6 +20,7 @@
                               :lemma (.lemma token)
                               :sentence sentence
                               :index (.index token)
+                              :position [(.beginPosition token) (.endPosition token)]
                               :type (types (.ner token))
                               :tag (.tag token)}])
 

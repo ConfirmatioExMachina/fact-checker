@@ -25,19 +25,32 @@
   [result]
   (/ (inc result) 2))
 
+(defn- node-attrs->article-title
+  [text {:keys [label named global] {[start end] :position} :annotation}]
+  (let [[_ followup-parens] (when end (re-find #"\s*(\([^)]+\))"
+                                               (subs text end)))]
+    (cond
+      followup-parens (str label " " followup-parens)
+      (and named (not global)) label)))
+
 (defn check-fact
   [fact]
   (let [cg (nlp/concept-graph fact :no-global-concepts)
-        named-nodes (->> (graph/nodes cg)
-                         (map (juxt identity (partial attr/attrs cg)))
-                         (filter (comp :named second)))]
-    (corpus/import-articles! (map (comp :label second) named-nodes))
+        nodes (->> (graph/nodes cg)
+                   (map (juxt identity (partial attr/attrs cg)))
+                   (into {}))
+        nodes->articles (->> nodes
+                             (map (juxt first (comp (partial node-attrs->article-title fact)
+                                                    second)))
+                             (remove (comp nil? second))
+                             (into {}))]
+    (corpus/import-articles! (vals nodes->articles))
     (let [start-ids (into {} (map (juxt first
                                         (comp (partial map-indexed vector)
                                               (partial take considered-matches)
                                               db/search-nodes
-                                              :label second))
-                                  named-nodes))
+                                              :label nodes first))
+                                  nodes->articles))
           cf-cg (graph/build-graph (graph/graph)
                                    (hlp/filter-nodes cg (comp (partial not= "context") :group
                                                               (partial attr/attrs cg))))
