@@ -1,8 +1,8 @@
 (ns cem.helpers.wikipedia
-  (require [clj-http.client :as client]
-           [clj-http.util :as client-util]
-           [clojure.data.json :as json]
-           [clojure.string :as str])
+  (:require [clj-http.client :as client]
+            [clj-http.util :as client-util]
+            [clojure.data.json :as json]
+            [clojure.string :as str])
   (:import (java.util ArrayList)
            (fastily.jwiki.core Wiki MQuery)))
 
@@ -43,8 +43,8 @@
                     (filter (fn [s] (str/includes? s "="))
                             (str/split (subs body
                                              (str/index-of body (re-find #"\{\{\s*[Ii]nfobox" body))
-                                             (count body)
-                                          #"\|")))))))
+                                             (count body))
+                                       #"\|"))))))
 
 (defn fetch-infobox
   [title]

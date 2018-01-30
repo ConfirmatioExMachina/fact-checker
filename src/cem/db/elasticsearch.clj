@@ -114,7 +114,7 @@
                            (when (and (:global attrs) (:named attrs))
                              (vector (names node)
                                      (select-keys attrs [:label :group :named :global])))))
-                      (graph/nodes g)))))
+                       (graph/nodes g)))))
 
 (defn refresh!
   []
