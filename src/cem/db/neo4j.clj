@@ -73,6 +73,7 @@
      ((if (id/concept? id) merge-node create-node)
       tx {:data (-> (attr/attrs g node)
                     (select-keys [:id :group :label :named
+                                  :infobox
                                   :negative :possibility
                                   :absolute-negative
                                   :root :global])

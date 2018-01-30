@@ -78,6 +78,7 @@
                                              (Math/pow (cfg :dropoff-factor) (+ i1 i2)))
                                           (catch Exception e 0)))
                            abs-match-sum (apply + (map #(Math/abs %) kg-matches))]
+                       ; (println n1-starts n2-starts kg-matches)
                        (if (zero? abs-match-sum) 0 (/ (apply + kg-matches) abs-match-sum))))
           kg-paths (remove zero? kg-paths)]
       (if (empty? kg-paths) 0 (apply min kg-paths)))))

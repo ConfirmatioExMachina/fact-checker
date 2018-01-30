@@ -10,3 +10,5 @@
   (apply cg/concept-graph
          (-> text cleanup/cleanup annotation-graph)
          opts))
+
+(def infobox-concept-graph cg/infobox-concept-graph)

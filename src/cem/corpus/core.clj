@@ -8,28 +8,36 @@
 
 (defn- import-docs!
   [docs]
-  (let [graphs (pmap (fn [[titles summary]]
+  (let [graphs (pmap (fn [[titles main-title summary infobox]]
                        (println (str "Computing concept graph for " titles "."))
-                       [titles (nlp/concept-graph summary)])
+                       {:titles titles
+                        :graphs [(nlp/concept-graph summary)
+                                 (nlp/infobox-concept-graph main-title infobox)]})
                      docs)]
     (future (doall graphs)) ; Force realization of all graphs in case ES or Neo4j are a bottleneck.
-    (db/insert-titled-graphs! graphs)))
+    (println graphs)))
+    ;(db/insert-titled-graphs! graphs)))
 
 (defn- import-articles-now!
   [titles]
-  (let [[title-map summaries] (->> titles
-                                   (distinct)
-                                   (remove db/title-inserted?)
-                                   wiki/fetch-summaries)
+  (let [{:keys [title-map summaries infoboxes]} (->> titles
+                                                   (distinct)
+                                                   (remove db/title-inserted?)
+                                                   wiki/fetch-data)
         reverse-title-map (->> title-map
                                (map (fn [[t1 t2]] {t2 #{t1}}))
                                (apply merge-with into))
         summaries (->> summaries
                        (map (fn [[t s]] (if (db/title-inserted? t) [t nil] [t s])))
                        (into {}))]
-    (import-docs! (map (fn [[title summary]]
-                         [(conj (reverse-title-map title) title) summary])
-                       summaries))))
+    (import-docs! (map (fn [[title queried-titles]]
+                         (if (db/title-inserted? title)
+                           [queried-titles nil nil nil]
+                           [(conj queried-titles title)
+                            title
+                            (summaries title)
+                            (infoboxes title)]))
+                       reverse-title-map))))
 
 (def ^:private article-cn (delay (let [titles-cn (chan)]
                                    (go-loop [[out titles] (<! titles-cn)]
