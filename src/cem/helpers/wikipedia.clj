@@ -1,8 +1,8 @@
 (ns cem.helpers.wikipedia
-  (require [clj-http.client :as client]
-           [clj-http.util :as client-util]
-           [clojure.data.json :as json]
-           [clojure.string :as str])
+  (:require [clj-http.client :as client]
+            [clj-http.util :as client-util]
+            [clojure.data.json :as json]
+            [clojure.string :as str])
   (:import (java.util ArrayList)
            (fastily.jwiki.core Wiki MQuery)))
 

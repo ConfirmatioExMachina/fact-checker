@@ -22,8 +22,8 @@
   "Simple generic BFS implementation."
   [root initial-global-data initial-path-data succ step & args]
   (let [{:keys [traverse-root]} (set args)]
-    (loop [queue (-> (PersistentQueue/EMPTY)
-                     (conj [root [] initial-path-data]))
+    (loop [queue (conj (PersistentQueue/EMPTY)
+                       [root [] initial-path-data])
            global-data initial-global-data]
       (if-let [[node path path-data] (peek queue)]
         ; Queue not empty:
