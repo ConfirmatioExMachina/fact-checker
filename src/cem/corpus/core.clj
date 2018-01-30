@@ -1,10 +1,12 @@
 (ns cem.corpus.core
-  (:require [cem.db.core :as db]
+  (:require [clojure.core.async :refer [chan promise-chan go-loop thread
+                                        <! >! <!! >!! poll! close!]]
+            [cem.db.core :as db]
             [cem.nlp.core :as nlp]
             [cem.corpus.offline :as offline]
             [cem.helpers.wikipedia :as wiki]))
 
-(defn import-docs!
+(defn- import-docs!
   [docs]
   (let [graphs (pmap (fn [[titles summary]]
                        (println (str "Computing concept graph for " titles "."))
@@ -13,12 +15,7 @@
     (future (doall graphs)) ; Force realization of all graphs in case ES or Neo4j are a bottleneck.
     (db/insert-titled-graphs! graphs)))
 
-(defn import-doc!
-  [title text]
-  (if-not (db/title-inserted? title)
-    (import-docs! [[[title] text]])))
-
-(defn import-articles!
+(defn- import-articles-now!
   [titles]
   (let [[title-map summaries] (->> titles
                                    (distinct)
@@ -33,6 +30,24 @@
     (import-docs! (map (fn [[title summary]]
                          [(conj (reverse-title-map title) title) summary])
                        summaries))))
+
+(def ^:private article-cn (delay (let [titles-cn (chan)]
+                                   (go-loop [[out titles] (<! titles-cn)]
+                                     (let [ins (take-while (complement nil?)
+                                                           (repeatedly #(poll! titles-cn)))
+                                           outs (conj (map first ins) out)
+                                           titles (concat titles (mapcat second ins))]
+                                       (if (<! (thread (import-articles-now! titles) true))
+                                         (doseq [out outs] (>! out true))
+                                         (doseq [out outs] (close! out)))
+                                       (recur (<! titles-cn))))
+                                   titles-cn)))
+
+(defn import-articles!
+  [titles]
+  (let [done (promise-chan)]
+    (>!! @article-cn [done titles])
+    (<!! done)))
 
 (defn import-article!
   [title]

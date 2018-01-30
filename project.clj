@@ -3,6 +3,7 @@
 
   :repositories {"jcenter" "https://jcenter.bintray.com/"}
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/core.async "0.4.474"]
 
                  [org.clojure/data.csv "0.1.4"]
                  [cheshire "5.8.0"]
@@ -12,7 +13,7 @@
                  [clojurewerkz/propertied "1.3.0"]
                  [org.slf4j/slf4j-log4j12 "1.7.25"]
 
-                 [gorillalabs/neo4j-clj "0.3.3"]
+                 [gorillalabs/neo4j-clj "0.5.0"]
                  [cc.qbits/spandex "0.5.5"]
 
                  [org.deeplearning4j/deeplearning4j-core "0.9.1"]
