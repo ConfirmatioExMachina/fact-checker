@@ -8,6 +8,13 @@
 
 (def ^:private wiki (delay (Wiki. "en.wikipedia.org")))
 
+(def ^:private infobox-property-map {
+                                     :postal_code "postal_code"
+                                     :Town "town"
+                                     :type "type"
+                                     :population "population"
+                                     :pop_dens "population_density"})
+
 (defn fetch-summaries
   [titles]
   (let [titles (distinct titles)
@@ -36,17 +43,17 @@
 
 (defn- extract-infobox
   [body]
-  (map (fn [x] (hash-map :property (str/trim (get x 0)),
-                         :value (str/trim (get x 1))))
-       (filter (fn [e] (= (count e) 2))
-               (map (fn [i] (str/split (str/trim (str/replace i "\\n" "")) #"="))
-                    (filter (fn [s] (str/includes? s "="))
-                            (str/split (subs body
-                                             (str/index-of body (re-find #"\{\{\s*[Ii]nfobox" body))
-                                             (count body)
-                                          #"\|")))))))
+  (into (hash-map) (map (fn [x] [(keyword (str/trim (get x 0)),)
+                                 (str/trim (get x 1))])
+                        (filter (fn [e] (= (count e) 2))
+                                (map (fn [i] (str/split (str/trim (str/replace i "\\n" "")) #"="))
+                                     (filter (fn [s] (str/includes? s "="))
+                                             (str/split (subs body
+                                                              (str/index-of body (re-find #"\{\{\s*[Ii]nfobox" body))
+                                                              (count body))
+                                                        #"\|")))))))
 
-(defn fetch-infobox
+(defn- fetch-infobox
   [title]
   (extract-infobox
    (get
@@ -54,3 +61,10 @@
      (str "http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&rvprop=content&titles="
           (client-util/url-encode title)))
     :body)))
+
+(defn get-infobox-elements
+  [title]
+  (into (hash-map) (map (fn [e] [(keyword (get infobox-property-map (get e 0)))
+                                 (get e 1)])
+                        (filter (fn [[k v]] (contains? infobox-property-map k))
+                                (fetch-infobox title)))))
