@@ -8,7 +8,7 @@
             [cem.corpus.core :as corpus]))
 
 (def ^:private cfg {:max-path-length 2
-                    :considered-matches 3
+                    :considered-matches 2
                     :direct-match-factor 10
                     :context-match-factor 1
                     :dropoff-factor 0.2})
@@ -30,13 +30,9 @@
           else score
         end as score"))
 
-(defn- binarify-result
-  [result]
-  (/ (inc result) 2))
-
 (defn- node-attrs->article-title
   [text {:keys [label named global] {[start end] :position} :annotation}]
-  (let [[_ followup-parens] (when end (re-find #"\s*(\([^)]+\))"
+  (let [[_ followup-parens] (when end (re-find #"^\s*(\([^)]+\))"
                                                (subs text end)))]
     (cond
       followup-parens (str label " " followup-parens)
@@ -56,7 +52,7 @@
     (corpus/import-articles! (vals nodes->articles))
     (let [start-ids (into {} (map (juxt first
                                         (comp (partial map-indexed vector)
-                                              (partial take considered-matches)
+                                              (partial take (cfg :considered-matches))
                                               db/search-nodes
                                               :label nodes first))
                                   nodes->articles))
@@ -66,7 +62,7 @@
           node-pairs (set (for [i (keys start-ids), j (keys start-ids) :when (not= i j)] #{i j}))
           fact-paths (->> node-pairs
                           (map (juxt identity (partial apply alg/bf-path cf-cg)))
-                          (filter (comp #(<= 1 % (inc max-path-length)) count second))
+                          (filter (comp #(<= 1 % (inc (cfg :max-path-length))) count second))
                           (into {}))
           kg-paths (for [[nodes fact-path] fact-paths]
                      (let [[n1 n2] (seq nodes)
@@ -74,14 +70,14 @@
                            n2-starts (start-ids n2)
                            kg-matches (for [[i1 [n1-start n1-score]] n1-starts
                                             [i2 [n2-start n2-score]] n2-starts]
-                                        (* (-> (db/cypher-query match-query
-                                                 {:n1 n1-start, :n2 n2-start})
-                                               first :score)
-                                           n1-score n2-score
-                                           (Math/pow (cfg :dropoff-factor) (+ i1 i2))))
+                                        (try
+                                          (* (-> (db/cypher-query match-query
+                                                  {:n1 n1-start, :n2 n2-start})
+                                                first :score)
+                                             n1-score n2-score
+                                             (Math/pow (cfg :dropoff-factor) (+ i1 i2)))
+                                          (catch Exception e 0)))
                            abs-match-sum (apply + (map #(Math/abs %) kg-matches))]
-                       (if (zero? abs-match-sum) 0 (/ (apply + kg-matches) abs-match-sum))))]
-      (binarify-result (if (empty? kg-paths) 0 (apply min kg-paths))))))
-
-(time (check-fact "Portsmouth is Charles Dickens' nascence place."))
-; (time (check-fact "Ted Harbert is Stephen Dunham's better half."))
+                       (if (zero? abs-match-sum) 0 (/ (apply + kg-matches) abs-match-sum))))
+          kg-paths (remove zero? kg-paths)]
+      (if (empty? kg-paths) 0 (apply min kg-paths)))))
