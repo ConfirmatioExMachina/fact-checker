@@ -1,4 +1,5 @@
 (ns cem.helpers.alg
+  "A small collection of general purpose algorithms."
   (:import (clojure.lang PersistentQueue)))
 
 (defn map-values [f m]

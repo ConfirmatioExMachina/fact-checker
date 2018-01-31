@@ -1,4 +1,5 @@
 (ns cem.nlp.pipeline
+  "Creates the CoreNLP pipeline."
   (:import (java.util Properties)
            (edu.stanford.nlp.pipeline StanfordCoreNLP)))
 

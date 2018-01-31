@@ -1,4 +1,5 @@
 (ns cem.train.core
+  "Calculates fact checking results for the test and training dataset."
   (:require [clojure.java.io :refer [reader resource]]
             [clojure.string :as str]
             [clojure.data.csv :refer [read-csv]]

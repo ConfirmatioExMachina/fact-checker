@@ -1,4 +1,8 @@
 (ns cem.corpus.core
+  "Coordinates concept graph creation from concept labels.
+   Performs batch wikipedia lookup and concept graph creation from summaries and infoboxes
+   if they are missing from the local Neo4j knowledge graph.
+   The computed concept graphs are then stored in Neo4j and Elasticsearch."
   (:require [clojure.core.async :refer [chan promise-chan go-loop thread
                                         <! >! <!! >!! poll! close!]]
             [cem.db.core :as db]

@@ -1,4 +1,8 @@
 (ns cem.checker.core
+  "Checks given textual facts for correctness.
+   First loads data from Wikipedia for all concepts contained in a given fact.
+   Then tries to match the fact concepts and the concepts it received from Wikipedia.
+   The matches are finally combined into a score between -1 (false) and 1 (true)."
   (:require [loom.graph :as graph]
             [loom.attr :as attr]
             [loom.alg :as alg]

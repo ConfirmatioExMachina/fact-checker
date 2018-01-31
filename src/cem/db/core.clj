@@ -1,4 +1,8 @@
 (ns cem.db.core
+  "Coordinates updates across Neo4j and Elasticsearch.
+   Inserts graphs into Neo4j, marks their titles as inserted
+   to prevent double insertion of the same graph
+   and indexes named global nodes in Elasticsearch to enable fuzzy node lookup."
   (:require [cem.db.neo4j :as neo4j]
             [cem.db.elasticsearch :as es]
             [cem.db.preprocess :as pre]))

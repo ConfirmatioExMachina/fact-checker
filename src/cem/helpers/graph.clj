@@ -1,4 +1,5 @@
 (ns cem.helpers.graph
+  "A collection of helper methods to simplify creation and modification of loom graphs."
   (:require [loom.graph :as graph]
             [loom.attr :as attr]))
 

@@ -1,4 +1,5 @@
 (ns cem.nlp.annotations
+  "Creates annotation graphs from text using CoreNLP."
   (:require [loom.graph :as lg]
             [loom.attr :as la]
             [cem.helpers.graph :as helpers]

@@ -1,4 +1,5 @@
 (ns cem.nlp.cg.infobox
+  "Creates concept graphs from infobox data."
   (:require [loom.graph :as graph]
             [cem.helpers.graph :as hlp]
             [cem.helpers.id :as id]

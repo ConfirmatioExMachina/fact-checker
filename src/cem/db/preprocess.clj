@@ -1,4 +1,5 @@
 (ns cem.db.preprocess
+  "Renames graph nodes to prevent id collisions when inserting graphs."
   (:require [loom.graph :as graph]
             [cem.helpers.id :as id]))
 

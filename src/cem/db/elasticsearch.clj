@@ -1,4 +1,5 @@
 (ns cem.db.elasticsearch
+  "Handles communication with Elasticsearch."
   (:require [qbits.spandex :as s]
             [qbits.spandex.url :refer [encode-fragment]]
             [loom.graph :as graph]

@@ -1,4 +1,5 @@
 (ns cem.nlp.cg.core
+  "Creates concept graphs from annotation graphs and from infobox data."
   (:require [loom.graph :as graph]
             [cem.nlp.cg.simplify-annotations :refer [simplify-annotations]]
             [cem.nlp.cg.add-concepts :refer [add-concepts]]

@@ -4,7 +4,8 @@ pom.xml.asc
 *.class
 /lib/
 /classes/
-/target/
+/target/*
+!/target/doc/
 /checkouts/
 /dev-resources/word2vec/
 .lein-deps-sum

@@ -1,4 +1,5 @@
 (ns cem.helpers.word2vec
+  "Provides word similarity lookup via word2vec."
   (:require [clojure.java.io :as io])
   (:import (org.deeplearning4j.models.embeddings.loader WordVectorSerializer)
            (org.apache.commons.io FileUtils)))

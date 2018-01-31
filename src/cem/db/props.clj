@@ -1,4 +1,5 @@
 (ns cem.db.props
+  "Loads Neo4j and ES connection information."
   (:require [clojure.java.io :as io]
             [clojurewerkz.propertied.properties :as props]))
 

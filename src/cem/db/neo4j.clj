@@ -1,4 +1,5 @@
 (ns cem.db.neo4j
+  "Handles communication with Neo4j."
   (:require [clojure.java.io :as io]
             [loom.graph :as graph]
             [loom.attr :as attr]

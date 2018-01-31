@@ -1,4 +1,5 @@
 (ns cem.helpers.id
+  "Handles id generation of graph nodes."
   (:require [clojure.string :as str]))
 
 (defn concept

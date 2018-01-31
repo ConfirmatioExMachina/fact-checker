@@ -1,4 +1,5 @@
 (ns cem.helpers.wikipedia
+  "Fetches summaries and infobox data from Wikipedia for given article titles."
   (:require [clojure.string :as str]
             [cem.helpers.alg :as alg])
   (:import (java.util ArrayList)
