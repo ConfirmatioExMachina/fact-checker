@@ -24,6 +24,8 @@
                  [edu.stanford.nlp/stanford-corenlp "3.8.0" :classifier "models"]]
 
   :plugins [[lein-codox "0.10.3"]]
+  :codox {:output-path "docs"
+          :source-uri "https://github.com/ConfirmatioExMachina/fact-checker/blob/master/{filepath}#L{line}"}
 
   :main cem.core
 
