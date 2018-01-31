@@ -8,7 +8,8 @@
             [cem.nlp.edge :refer [edge] :as edge]
             [cem.nlp.corenlp-symbols :refer [clauses agents patients
                                              verbs keyword-tags types]]
-            [cem.nlp.cg.context :refer [context context-of] :as context]))
+            [cem.nlp.cg.context :refer [context context-of] :as context]
+            [cem.nlp.cg.merge-keyword-compounds :refer [merge-keyword-compounds]]))
 
 (def annotation-node-map {"PRP" {:group "concept"}
                           "PRP$" {:group "concept"}
@@ -322,7 +323,7 @@
       g)))
 
 (defn add-concepts
-  [g]
+  [g keyword-compounds]
   (-> g
       fix-copulas
       add-possibility-contexts
@@ -332,5 +333,6 @@
       add-negative-contexts
       fix-nesting-requirements
       be->inst
+      ((if keyword-compounds merge-keyword-compounds identity))
       cleanup-annotation-nodes
       cleanup-annotation-edges))

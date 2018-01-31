@@ -40,13 +40,13 @@
   (if (<= threshold result) 1 0))
 
 (defn ROC
-  [threshold checks]
-  (let [binary-checks (map (fn [[id fact truth result]]
-                             [truth (binarify-result threshold result)])
-                           checks)
-        p (remove (fn [[truth result]] (zero? truth)) binary-checks)
+  [threshold results]
+  (let [binary-results (map (fn [[id fact truth result]]
+                              [truth (binarify-result threshold result)])
+                            results)
+        p (remove (fn [[truth result]] (zero? truth)) binary-results)
         tp (remove (fn [[truth result]] (zero? result)) p)
-        f (filter (fn [[truth result]] (zero? truth)) binary-checks)
+        f (filter (fn [[truth result]] (zero? truth)) binary-results)
         fp (remove (fn [[truth result]] (zero? result)) f)
         tpr (/ (count tp) (count p))
         fpr (/ (count fp) (count f))]
@@ -54,7 +54,7 @@
 
 (defn ROC-curve
   [results]
-  (set (map #(ROC % (take 60 results))
+  (set (map #(ROC % results)
             (range -1 1.01 0.01))))
 
 (def train-data (delay (read-data (resource "train.tsv"))))

@@ -3,7 +3,8 @@
             [loom.graph :as graph]
             [loom.attr :as attr]
             [cem.helpers.graph :as hlp]
-            [cem.nlp.corenlp-symbols :refer [fill-tags]]))
+            [cem.nlp.corenlp-symbols :refer [fill-tags]]
+            [cem.nlp.cg.merge-tokens :refer [merge-tokens]]))
 
 (defn remove-fill-words
   [g]
@@ -22,30 +23,12 @@
                                               (re-matches #"aux|auxpass"))
                                     (graph/in-edges g node)))))
 
-(defn- merge-compound
-  [g [c1 c2]]
-  (let [attrs1 (attr/attrs g c1)
-        attrs2 (attr/attrs g c2)
-        [parts1 parts2] (map #(get % :compound-parts (sorted-map (:index %) (:lemma %)))
-                             [attrs1 attrs2])
-        new-parts (merge parts1 parts2)
-        new-lemma (str/join " " (vals new-parts))
-        [[s1 e1] [s2 e2]] (map :position [attrs1 attrs2])
-        new-position [(min s1 s2) (max e1 e2)]]
-    (-> g
-        (hlp/merge-nodes c1 c2)
-        (hlp/add-attrs c1 {:compound-parts new-parts
-                           :lemma new-lemma
-                           :label new-lemma
-                           :position new-position})
-        (graph/remove-edges [c1 c1]))))
-
 (defn merge-compounds
   [g]
   (if-let [compound (first (filter #(str/starts-with? (or (attr/attr g % :dep-type) "")
                                                       "compound")
                                    (graph/edges g)))]
-    (recur (merge-compound g compound))
+    (recur (merge-tokens g compound))
     g))
 
 (defn simplify-annotations

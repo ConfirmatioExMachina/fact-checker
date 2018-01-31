@@ -15,15 +15,14 @@
                                  (nlp/infobox-concept-graph main-title infobox)]})
                      docs)]
     (future (doall graphs)) ; Force realization of all graphs in case ES or Neo4j are a bottleneck.
-    (println graphs)))
-    ;(db/insert-titled-graphs! graphs)))
+    (db/insert-titled-graphs! graphs)))
 
 (defn- import-articles-now!
   [titles]
   (let [{:keys [title-map summaries infoboxes]} (->> titles
-                                                   (distinct)
-                                                   (remove db/title-inserted?)
-                                                   wiki/fetch-data)
+                                                     (distinct)
+                                                     (remove db/title-inserted?)
+                                                     wiki/fetch-data)
         reverse-title-map (->> title-map
                                (map (fn [[t1 t2]] {t2 #{t1}}))
                                (apply merge-with into))

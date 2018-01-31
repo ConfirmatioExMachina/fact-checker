@@ -8,7 +8,7 @@
   [label named]
   {:label label
    :named named
-   :global true
+   :global named
    :infobox true
    :group "concept"})
 
@@ -18,8 +18,8 @@
         g (hlp/add-nodes-with-attrs (graph/digraph)
                                     {subj-id
                                      (concept-attrs subject true)})]
-    (loop [infobox (seq infobox), g g]
-      (if-let [[rel objs] (first infobox)]
+    (loop [[prop & props] (seq infobox), g g]
+      (if-let [[rel objs] prop]
         (let [rel-id (id/random)
               nodes (->> objs
                          (map (juxt id/concept #(concept-attrs % true)))
@@ -27,7 +27,7 @@
               edges (->> objs
                          (map #(vector [(id/concept %) rel-id] edge/inst))
                          (into {[subj-id rel-id] edge/patient}))]
-          (recur (next infobox)
+          (recur props
                  (-> g
                      (hlp/add-nodes-with-attrs nodes)
                      (hlp/add-edges-with-attrs edges))))

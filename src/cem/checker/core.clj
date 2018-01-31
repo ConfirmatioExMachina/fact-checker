@@ -8,18 +8,16 @@
             [cem.corpus.core :as corpus]))
 
 (def ^:private cfg {:max-path-length 2
-                    :considered-matches 2
-                    :direct-match-factor 10
-                    :context-match-factor 1
+                    :considered-matches 3
+                    :direct-match-factor 20
+                    :context-match-factor 2
                     :dropoff-factor 0.2})
 
 (def ^:private match-query
   (str "match (n1:node {id: $n1}), (n2:node {id: $n2}),
-              (n1)-[:inst*]->(m1:node), (m2:node)<-[:inst*]-(n2),
+              (n1)-[:inst*0..1]->(m1:node), (m2:node)<-[:inst*0..1]-(n2),
               p = (m1)-[*0.." (cfg :max-path-length) "]-(m2)
-        where (not exists(m1.global) or m1.global = false or n1.global = m1.global)
-         	and (not exists(m2.global) or m2.global = false or n1.global = m2.global)
-          and none(x in nodes(p) where exists(x.global) and x <> m1 and x <> m2)
+        where none(x in nodes(p) where exists(x.global) and x <> m1 and x <> m2)
         with case
           when none(x in nodes(p) where x.group = 'context')  then " (cfg :direct-match-factor) "
           else " (cfg :context-match-factor) "
@@ -40,7 +38,7 @@
 
 (defn check-fact
   [fact]
-  (let [cg (nlp/concept-graph fact :no-global-concepts)
+  (let [cg (nlp/concept-graph fact :no-global-concepts :keyword-compounds)
         nodes (->> (graph/nodes cg)
                    (map (juxt identity (partial attr/attrs cg)))
                    (into {}))
