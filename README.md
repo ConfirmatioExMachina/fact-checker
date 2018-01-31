@@ -6,7 +6,7 @@ This fact checker uses a concept graph created from Wikipedia articles as a corp
 
 ## Requirements
 * Java 1.8
-* Leiningen 2.7
+* Leiningen 2.8
 * Neo4j 3.3
 * Elasticsearch 6.1
 
